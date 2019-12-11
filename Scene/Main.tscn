@@ -2,7 +2,7 @@
 
 [ext_resource path="res://script/Main.gd" type="Script" id=1]
 [ext_resource path="res://Scene/Player.tscn" type="PackedScene" id=2]
-[ext_resource path="res://Scene/Platforms.tscn" type="PackedScene" id=3]
+[ext_resource path="res://Scene/InfoDisplay.tscn" type="PackedScene" id=3]
 
 [sub_resource type="PhysicsMaterial" id=1]
 friction = 0.0
@@ -21,16 +21,15 @@ __meta__ = {
 
 [node name="ColorRect" type="ColorRect" parent="."]
 margin_right = 480.0
-margin_bottom = 710.0
+margin_bottom = 680.0
 
 [node name="Player" parent="." instance=ExtResource( 2 )]
 position = Vector2( 240, 530 )
 physics_material_override = SubResource( 1 )
 
-[node name="Platforms" parent="." instance=ExtResource( 3 )]
-
 [node name="deadLine" type="RigidBody2D" parent="."]
-position = Vector2( 240, 710 )
+editor/display_folded = true
+position = Vector2( 240, 680 )
 mode = 3
 physics_material_override = SubResource( 2 )
 continuous_cd = 2
@@ -38,7 +37,9 @@ contacts_reported = 1
 contact_monitor = true
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="deadLine"]
+position = Vector2( 0, 10 )
 shape = SubResource( 3 )
-[connection signal="I_am_fall" from="Player" to="Platforms" method="enableCollision"]
-[connection signal="I_am_up" from="Player" to="Platforms" method="disableCollision"]
+
+[node name="InfoDisplay" parent="." instance=ExtResource( 3 )]
 [connection signal="body_entered" from="deadLine" to="." method="_on_deadLine_body_entered"]
+[connection signal="start_game" from="InfoDisplay" to="." method="_on_InfoDisplay_start_game"]

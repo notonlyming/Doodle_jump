@@ -3,7 +3,7 @@ extends Node2D
 var screen_size
 const PLATFORM_GAP = 100
 # 平台移动速度
-var speed = 300
+var speed = 600
 # 这是一个列表，维护所有平台的目标位置，同时，它也包含对应的平台的引用，
 # 因此里面的每个元素还是一个数组，每个数组第一个是引用，第二个是目的地位置
 var destinationList = []
@@ -20,6 +20,9 @@ func _ready():
 	randomize()
 	screen_size = get_viewport_rect().size
 	_generatePlatforms()
+
+func gameOver():
+	queue_free()
 
 func enableCollision():
 	var platform_nodes = get_tree().get_nodes_in_group("platforms")
@@ -76,6 +79,7 @@ func _process(delta):
 			break
 		var derection = (destinationList[index][1] - destinationList[index][0].position).normalized()
 		destinationList[index][0].position += derection * speed * delta
+		get_node("..").score += speed * delta / 100
 		if destinationList[index][0].position.y > screen_size.y:
 			# 删除
 			deletPlatform(index)
