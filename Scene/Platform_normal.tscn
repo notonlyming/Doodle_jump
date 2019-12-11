@@ -10,6 +10,7 @@ friction = 0.0
 extents = Vector2( 20, 10 )
 
 [node name="Platform_normal" type="StaticBody2D"]
+scale = Vector2( 0.5, 0.5 )
 physics_material_override = SubResource( 1 )
 script = ExtResource( 1 )
 __meta__ = {

@@ -30,8 +30,7 @@ physics_material_override = SubResource( 1 )
 [node name="Platforms" parent="." instance=ExtResource( 3 )]
 
 [node name="deadLine" type="RigidBody2D" parent="."]
-editor/display_folded = true
-position = Vector2( 240, 720 )
+position = Vector2( 240, 710 )
 mode = 3
 physics_material_override = SubResource( 2 )
 continuous_cd = 2
