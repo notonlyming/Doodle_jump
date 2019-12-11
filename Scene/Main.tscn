@@ -1,0 +1,50 @@
+[gd_scene load_steps=8 format=2]
+
+[ext_resource path="res://script/Main.gd" type="Script" id=1]
+[ext_resource path="res://Scene/Player.tscn" type="PackedScene" id=2]
+[ext_resource path="res://Scene/Platforms.tscn" type="PackedScene" id=3]
+
+[sub_resource type="PhysicsMaterial" id=1]
+friction = 0.0
+
+[sub_resource type="PhysicsMaterial" id=2]
+friction = 0.0
+
+[sub_resource type="RectangleShape2D" id=3]
+extents = Vector2( 240, 10 )
+
+[sub_resource type="CurveTexture" id=4]
+width = 480
+
+[node name="Main" type="Node2D"]
+script = ExtResource( 1 )
+__meta__ = {
+"_edit_horizontal_guides_": [ 350.0 ]
+}
+
+[node name="ColorRect" type="ColorRect" parent="."]
+margin_right = 480.0
+margin_bottom = 710.0
+
+[node name="Player" parent="." instance=ExtResource( 2 )]
+position = Vector2( 240, 530 )
+physics_material_override = SubResource( 1 )
+
+[node name="Platforms" parent="." instance=ExtResource( 3 )]
+
+[node name="ground" type="RigidBody2D" parent="."]
+position = Vector2( 240, 720 )
+mode = 1
+physics_material_override = SubResource( 2 )
+continuous_cd = 2
+contacts_reported = 1
+contact_monitor = true
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ground"]
+shape = SubResource( 3 )
+
+[node name="Sprite" type="Sprite" parent="ground"]
+scale = Vector2( 1, 19.9999 )
+texture = SubResource( 4 )
+[connection signal="I_am_fall" from="Player" to="Platforms" method="enableCollision"]
+[connection signal="I_am_up" from="Player" to="Platforms" method="disableCollision"]

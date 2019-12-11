@@ -1,0 +1,25 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://script/Platform_normal.gd" type="Script" id=1]
+[ext_resource path="res://Platform/normal/platform_画板 1.png" type="Texture" id=2]
+
+[sub_resource type="PhysicsMaterial" id=1]
+friction = 0.0
+
+[sub_resource type="RectangleShape2D" id=2]
+extents = Vector2( 20, 10 )
+
+[node name="Platform_normal" type="StaticBody2D"]
+physics_material_override = SubResource( 1 )
+script = ExtResource( 1 )
+__meta__ = {
+"_edit_vertical_guides_": [ -24.9037 ]
+}
+
+[node name="Sprite" type="Sprite" parent="."]
+scale = Vector2( 0.1, 0.1 )
+texture = ExtResource( 2 )
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+scale = Vector2( 1.25, 0.3 )
+shape = SubResource( 2 )
