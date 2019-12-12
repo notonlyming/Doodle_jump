@@ -11,7 +11,7 @@ friction = 0.0
 friction = 0.0
 
 [sub_resource type="RectangleShape2D" id=3]
-extents = Vector2( 240, 10 )
+extents = Vector2( 520, 10 )
 
 [node name="Main" type="Node2D"]
 script = ExtResource( 1 )
@@ -20,16 +20,15 @@ __meta__ = {
 }
 
 [node name="ColorRect" type="ColorRect" parent="."]
-margin_right = 480.0
-margin_bottom = 680.0
+margin_right = 1020.0
+margin_bottom = 600.0
 
 [node name="Player" parent="." instance=ExtResource( 2 )]
-position = Vector2( 240, 530 )
+position = Vector2( 510, 530 )
 physics_material_override = SubResource( 1 )
 
 [node name="deadLine" type="RigidBody2D" parent="."]
-editor/display_folded = true
-position = Vector2( 240, 680 )
+position = Vector2( 530, 770 )
 mode = 3
 physics_material_override = SubResource( 2 )
 continuous_cd = 2
@@ -37,7 +36,7 @@ contacts_reported = 1
 contact_monitor = true
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="deadLine"]
-position = Vector2( 0, 10 )
+position = Vector2( -22.55, -160 )
 shape = SubResource( 3 )
 
 [node name="InfoDisplay" parent="." instance=ExtResource( 3 )]
