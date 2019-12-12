@@ -1,7 +1,5 @@
 extends StaticBody2D
 
-# 弹力系数，玩家将根据该值调整获得的向上初速度
-const elesticK = 10
 const type = "brittle"
 const PLATFORM_WIDTH = 50
 # 该信号用于指示平台页面改变自身的位置，使得平台下降到底部

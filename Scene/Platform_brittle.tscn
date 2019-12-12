@@ -33,12 +33,14 @@ frames = SubResource( 2 )
 animation = "elestic"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-scale = Vector2( 1.25, 0.23 )
+position = Vector2( 0.95, 0 )
+scale = Vector2( 1.25, 0.18 )
 shape = SubResource( 3 )
 
 [node name="Area2D" type="Area2D" parent="."]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
-scale = Vector2( 1.25, 0.23 )
+position = Vector2( 1.14, 0 )
+scale = Vector2( 1.25, 0.18 )
 shape = SubResource( 3 )
 [connection signal="body_entered" from="Area2D" to="." method="_on_Area2D_body_entered"]

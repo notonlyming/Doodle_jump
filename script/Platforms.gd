@@ -3,10 +3,10 @@ extends Node2D
 var screen_size
 const PLATFORM_GAP = 100
 # 平台移动速度
-var speed = 600
-# 这是一个列表，维护所有平台的目标位置，同时，它也包含对应的平台的引用，
-# 因此里面的每个元素还是一个数组，每个数组第一个是引用，第二个是目的地位置
-var destinationList = []
+var speed = 10
+# 这是一个列表，第一个是接触到的平台，第二个是应该到达的距离
+# 用于_process移动所有平台的参考
+var target = [null, null]
 # 跳动后平台向下移动目的距离屏幕的边距
 const PLATFORM_BOTTOM_MARGIN = 50
 var Platform_type_list = [
@@ -57,47 +57,55 @@ func generateNew(y):
 	
 	add_child(tempPlatform)
 	tempPlatform.add_to_group("platforms")
-	# 添加所有平台原始位置到目的地列表，以便日后修改
-	destinationList.append([tempPlatform, tempPlatform.position])
-	# 注意此处的形参不可传递不可变的值，比如传个index的值是不行的，因为它是会变的，但传进去以后就不变了
-	# 传引用是可以的，引用可以不变，但tempPlatform这个引用指向的内容是变的
+	
+	# 注意此处的形参不可传递可变的值。
+	# 比如传个index的值是不行的。
+	# 因为你传进去以后平台数目会变的，但index传进去以后就不变了
+	# 传引用是可以的，引用可以不变。
+	# tempPlatform这个引用指向的实例的成员变量等等是可以变的
 	tempPlatform.connect("a_platform_touched_by_player", self, "adjustPositonByplatform", [tempPlatform])
 	return tempPlatform
 
-func deletPlatform(index):
-	destinationList[index][0].queue_free()
-	destinationList.remove(index)
+func deletPlatform(platform, topPlatform):
+	platform.queue_free()
 	# 此时在最顶部的平台上面再重新生成一个新的平台
-	generateNew(destinationList[-1][1].y - PLATFORM_GAP)
+	generateNew(topPlatform.position.y - PLATFORM_GAP)
 
-func _process(delta):
-	var disappearListIndex = []
-	# 将所有平台移动到目的地
-	for index in range(destinationList.size()):
-		var distance = (destinationList[index][0].position - destinationList[index][1]).length()
-		if distance < 10:
-			break
-		var derection = (destinationList[index][1] - destinationList[index][0].position).normalized()
-		destinationList[index][0].position += derection * speed * delta
-		get_node("..").score += speed * delta / 100
-		if destinationList[index][0].position.y > screen_size.y:
-			# 删除
-			deletPlatform(index)
-			break
+func getTopPlatform():
+	var allPlatform = get_tree().get_nodes_in_group("platforms")
+	return allPlatform[-1]
+
+func _physics_process(delta):
+	var allPlatform = get_tree().get_nodes_in_group("platforms")
+	# 将所有平台向下移动，直到下移距离接近0
+	var moveLittle = speed
+	if target[0] != null and target[1] - target[0].position.y > 0:
+		for index in range(allPlatform.size()):
+			# 向下落一点点
+			allPlatform[index].position.y += moveLittle
+			# 根据移动距离加分
+			get_node("..").score += moveLittle
+			if allPlatform[index].position.y > screen_size.y:
+				# 删除
+				deletPlatform(allPlatform[index], allPlatform[-1])
+				break
+	else:
+		pass
 
 # 原本platform所在位置要移动到底部，要移动的距离就是底部的减去原本的
-# 这个函数会直接给所有平台要去的地方destinationList这个列表赋值
+# 这个函数会直接把要移动的距离加给一个全局移动距离
 # 移动的事情会交给_process来做
 func adjustPositonByplatform(touchedPlatform):
 	var touchedPlatformPosition = touchedPlatform.position
 	var distance = screen_size.y - PLATFORM_BOTTOM_MARGIN - touchedPlatformPosition.y
+	# 根据不同平台做出相应响应
 	if touchedPlatform.type == "elestic":
 		distance = distance * touchedPlatform.elesticK
 	elif touchedPlatform.type == "brittle":
 		# 这里设置不可见就可以了吧
 		touchedPlatform.visible = false
 		touchedPlatform.changeCollision("permanentDisable")
-	# 根据距离重算所有平台移动的目的地
-	# 花费时间太多！！
-	for index in range(destinationList.size()):
-		destinationList[index][1].y = destinationList[index][0].position.y + distance
+	# 重算最顶部位置，以最顶部的平台归位到正确位置为准
+	# 这是因为最底部的平台是会被删除的，会出点问题
+	var TopPlatform = getTopPlatform()
+	target = [TopPlatform, TopPlatform.position.y + distance]
