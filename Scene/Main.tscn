@@ -1,44 +1,44 @@
 [gd_scene load_steps=7 format=2]
 
-[ext_resource path="res://script/Main.gd" type="Script" id=1]
+[ext_resource path="res://script/doodle.gd" type="Script" id=1]
 [ext_resource path="res://Scene/Player.tscn" type="PackedScene" id=2]
 [ext_resource path="res://Scene/InfoDisplay.tscn" type="PackedScene" id=3]
+[ext_resource path="res://music/doodle/fall.wav" type="AudioStream" id=4]
 
 [sub_resource type="PhysicsMaterial" id=1]
 friction = 0.0
 
-[sub_resource type="PhysicsMaterial" id=2]
-friction = 0.0
+[sub_resource type="RectangleShape2D" id=2]
+extents = Vector2( 974.714, 10 )
 
-[sub_resource type="RectangleShape2D" id=3]
-extents = Vector2( 520, 10 )
-
-[node name="Main" type="Node2D"]
+[node name="doodle" type="Node2D"]
 script = ExtResource( 1 )
 __meta__ = {
 "_edit_horizontal_guides_": [  ]
 }
 
 [node name="ColorRect" type="ColorRect" parent="."]
-margin_right = 1020.0
-margin_bottom = 600.0
+margin_right = 1920.0
+margin_bottom = 1080.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
 
 [node name="Player" parent="." instance=ExtResource( 2 )]
-position = Vector2( 510, 530 )
-physics_material_override = SubResource( 1 )
+position = Vector2( 960, 600 )
 
 [node name="deadLine" type="RigidBody2D" parent="."]
-position = Vector2( 530, 770 )
+position = Vector2( 960, 1090 )
 mode = 3
-physics_material_override = SubResource( 2 )
+physics_material_override = SubResource( 1 )
 continuous_cd = 2
 contacts_reported = 1
 contact_monitor = true
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="deadLine"]
-position = Vector2( -22.55, -160 )
-shape = SubResource( 3 )
+shape = SubResource( 2 )
 
 [node name="InfoDisplay" parent="." instance=ExtResource( 3 )]
-[connection signal="body_entered" from="deadLine" to="." method="_on_deadLine_body_entered"]
-[connection signal="start_game" from="InfoDisplay" to="." method="_on_InfoDisplay_start_game"]
+
+[node name="PlayerFall" type="AudioStreamPlayer" parent="."]
+stream = ExtResource( 4 )

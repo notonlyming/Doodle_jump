@@ -1,75 +1,107 @@
-extends RigidBody2D
+extends KinematicBody2D
 
-# 竖直初速度修正系数
-const FIX_VERTICAL_V_K = 1.5
-# 水平速度系数
-const FIX_HORIZONTAL_V_K = 10
-# 竖直方向施加的力，用于加速下落速度
-# 注意，无法通过增加质量改变加速度
-const VERTICAL_FORCE = 500
-# 弹跳初速度, 该速度需要动态调整，无论如何都不能跳过屏幕中部
-var jumpVelocity
 # 屏幕尺寸，在ready函数中初始化
-var screen_size
-# 上升信号，用于让所有平台接收并关闭碰撞检测一边玩家能穿过平台
-signal I_am_up
-# 降落信号，与上面相反
-signal I_am_fall
-# 上次上升或下降状态
-var lastUpFallState = "fall"
+var screen_size = Vector2(1920, 1080)
+# 水平移动速度放大系数
+const HORIZONTAL_FIX_K = 10
+const A = 9.8 * 200 # 玩家下落加速度
+var _velocity = Vector2(0, 0)
+# 上升和下降状态记录变量
+var upOrFall = "fall"
+const UP_V = 800  # 玩家上升速度，为匀速
 
-# 该函数由引擎自动调用，只有在里面改变施加力才能与物理系统协调
-func _integrate_forces(state):
-	applied_force = Vector2(0, VERTICAL_FORCE)
-
-func _ready():
-	screen_size = get_viewport_rect().size
-
-# 根据速度播放动画
-func playAnimateByVelocity():
+# 根据状态播放动画
+func playAnimateByState():
 	# 根据水平速度调整动画方向
-	$AnimatedSprite.flip_h = linear_velocity.x < 0
-	
-	if linear_velocity.y > 0:
+	$AnimatedSprite.flip_h = _velocity.x < 0
+	if upOrFall == "fall":
 		$AnimatedSprite.play("drop")
-	else:
+	elif upOrFall == "up" or upOrFall == "hang":
 		$AnimatedSprite.play("jump")
+	elif upOrFall == "boom":
+		$AnimatedSprite.play("boom")
+		yield(get_tree().create_timer(1), "timeout")
+		upOrFall = "fall"
+	elif upOrFall == "fly":
+		$AnimatedSprite.play("fly")
 
-func _physics_process(delta):
-	# 如果状态发生改变，发出上升或下降信号一次
-	if linear_velocity.y < -0 and lastUpFallState == "fall":
-		emit_signal("I_am_up")
-		lastUpFallState = "up"
-	elif linear_velocity.y > 0 and lastUpFallState == "up":
-		emit_signal("I_am_fall")
-		lastUpFallState = "fall"
+func fly(delta):
+	var vertical_target = screen_size.y / 2
+	var distance = position.y - vertical_target
+	# 如果没到达屏幕中部
+	if distance > 0:
+		_velocity.y = -UP_V
+		position += _velocity * delta
+	else:
+		# 到达屏幕中部，处于等待状态
+		upOrFall = "fly"
+		# 在上升到指定位置以后，仅改变水平方向
+		position.x += _velocity.x * delta
+
+func up(delta):
+	var vertical_target = screen_size.y / 2
+	var distance = position.y - vertical_target
+	# 如果没到达屏幕中部
+	if distance > 0:
+		_velocity.y = -UP_V
+		position += _velocity * delta
+	else:
+		# 到达屏幕中部，处于等待状态
+		upOrFall = "hang"
+
+func hang(delta):
+	if get_node("..").gameState == "ready":
+		upOrFall = "fall"
+	else:
+		# 在上升到指定位置以后，仅改变水平方向
+		position.x += _velocity.x * delta
+
+func fall(delta):
+	var vertical_target = screen_size.y
+	var x = position.y - vertical_target / 2 # 下落的距离
+	# 速度距离公式，初速为1
+	_velocity.y = sqrt(A * x + 1)
+	# 移动
+	var collide_info = move_and_collide(_velocity * delta)
+	# 如果碰到
+	if collide_info:
+		_on_Player_body_entered(collide_info.collider)
 
 func _process(delta):
 	# 获取鼠标坐标与玩家的水平距离
 	var mouse_position = get_viewport().get_mouse_position()
 	var diffDistance = mouse_position.x - position.x
-	# 如果有点距离，给他一个该方向的速度
-	if abs(diffDistance) > 0:
-		set_axis_velocity(Vector2(diffDistance * FIX_HORIZONTAL_V_K,0))
-	else:
-		set_axis_velocity(Vector2(0,0))
-	
-	# 播放玩家的跳跃动画
-	playAnimateByVelocity()
+	# 如果有点距离，则移动
+	_velocity.x = diffDistance * HORIZONTAL_FIX_K
+	# 开始移动
+	if upOrFall == 'fall':
+		fall(delta)
+	elif upOrFall == "up":
+		up(delta)
+	elif upOrFall == "hang":
+		hang(delta)
+	elif upOrFall == "fly":
+		fly(delta)
+	# 限制玩家位置
+	position.x = clamp(position.x, 0, screen_size.x)
+	position.y = clamp(position.y, screen_size.y / 2, screen_size.y)
+	playAnimateByState()
 
-# 此处处理玩家与平台发生碰撞后的起跳
+# 此处处理玩家下落碰撞后的行为
 func _on_Player_body_entered(body):
-	# 玩家不能跳过屏幕中部，因此从起跳点到屏幕中部的距离为路程
-	var x = body.position.y - screen_size.y / 2
-	# 根据速度距离公式 v平方 = ax求出应该施加的初速度
-	var a = (VERTICAL_FORCE + weight) / mass
-	# 由该公式计算出来的初速度与引擎实际发生的由出入，因此乘以一个修正系数
-	if x>0:
-		jumpVelocity = -sqrt(a*x) * FIX_VERTICAL_V_K
-	else:
-		jumpVelocity = 0
-	"""
-	print("jumpV: %s" % jumpVelocity)
-	print("position: [%s,%s]" %[position.x,position.y])
-	"""
-	set_axis_velocity(Vector2(0,jumpVelocity))
+	if body.name.find("Platform") != -1:
+		if body.name.find("dead") != -1:
+			upOrFall = "boom"
+		elif body.name.find("fly") != -1:
+			upOrFall = "fly"
+		else:
+			upOrFall = "up"
+		body.on_Player_touched()
+	elif body.name.find("deadLine") != -1:
+		# 只有不在游戏时才会起跳
+		if $"..".gameState != "playing":
+			upOrFall = "up"
+		get_node("..").player_On_deadLine()
+	elif body.name.find("cloud") != -1:
+		body.on_Player_touched()
+		pass

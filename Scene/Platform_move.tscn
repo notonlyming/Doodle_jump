@@ -1,0 +1,27 @@
+[gd_scene load_steps=6 format=2]
+
+[ext_resource path="res://picture/Platform/move/platform_move2.png" type="Texture" id=1]
+[ext_resource path="res://picture/Platform/move/platform_move1.png" type="Texture" id=2]
+[ext_resource path="res://script/Platform_move.gd" type="Script" id=3]
+
+[sub_resource type="SpriteFrames" id=1]
+animations = [ {
+"frames": [ ExtResource( 2 ), ExtResource( 1 ) ],
+"loop": true,
+"name": "move",
+"speed": 6.0
+} ]
+
+[sub_resource type="RectangleShape2D" id=2]
+extents = Vector2( 40.4181, 7.09309 )
+
+[node name="Platform_move" type="StaticBody2D"]
+script = ExtResource( 3 )
+
+[node name="Sprite" type="AnimatedSprite" parent="."]
+scale = Vector2( 0.7, 0.7 )
+frames = SubResource( 1 )
+animation = "move"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource( 2 )
